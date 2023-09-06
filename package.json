@@ -1,0 +1,29 @@
+{
+    "name": "vue3-core",
+    "version": "0.0.1",
+    "description": "implement vue3 core code",
+    "main": "index.js",
+    "scripts": {
+        "test": "pnpm run test:unit",
+        "test:unit": "vitest",
+        "test:coverage": "vitest --coverage"
+    },
+    "engines": {
+        "node": ">=16"
+    },
+    "keywords": [
+        "vue",
+        "vue3",
+        "source code",
+        "learn vue3",
+        "reactivity"
+    ],
+    "author": "陪我去看海吧",
+    "homepage": "https://github.com/pkc918/vue3-core",
+    "license": "MIT",
+    "devDependencies": {
+        "@vitest/coverage-v8": "^0.34.3",
+        "typescript": "^5.2.2",
+        "vitest": "^0.34.3"
+    }
+}
