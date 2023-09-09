@@ -1,9 +1,12 @@
+import { extend } from "../shared";
+
 export type Deps = Set<ReactiveEffect>
 export type DepMap = Map<string | symbol, Deps>
 export type Bucket = WeakMap<object, DepMap>
 
 export interface EffectOption {
     scheduler?: Function;
+    onStop?: Function;
 }
 
 interface RunnerType {
@@ -16,6 +19,7 @@ let activeEffect: ReactiveEffect;
 
 class ReactiveEffect {
     public depsAry: Deps[] = [];
+    public onStop?: Function;
     public _scheduler?: Function;
     private readonly _fn: Function;
 
@@ -30,20 +34,27 @@ class ReactiveEffect {
     }
 
     stop() {
-        this.depsAry.forEach(deps => {
-            deps.delete(this);
-        });
+        if (this.onStop) {
+            this.onStop();
+        }
+        cleanup(this);
     }
 }
 
+function cleanup(effect: ReactiveEffect) {
+    effect.depsAry.forEach(deps => {
+        deps.delete(effect);
+    });
+}
+
 export function effect(fn: Function, options: EffectOption = {}) {
-    const _effect = new ReactiveEffect(fn, options.scheduler);
+    let _effect = new ReactiveEffect(fn, options.scheduler);
+    extend(_effect, options);
     _effect.run();
     const runner: RunnerType = _effect.run.bind(_effect);
     runner.effect = _effect;
     return runner;
 }
-
 
 export function stop(runner: RunnerType) {
     runner.effect?.stop();
