@@ -1,13 +1,21 @@
 export type Deps = Set<ReactiveEffect>
 export type DepMap = Map<string | symbol, Deps>
 export type Bucket = WeakMap<object, DepMap>
-export interface EffectOption{
-    scheduler?: Function
+
+export interface EffectOption {
+    scheduler?: Function;
+}
+
+interface RunnerType {
+    effect?: ReactiveEffect;
+
+    (): any;
 }
 
 let activeEffect: ReactiveEffect;
 
 class ReactiveEffect {
+    public depsAry: Deps[] = [];
     public _scheduler?: Function;
     private readonly _fn: Function;
 
@@ -20,12 +28,25 @@ class ReactiveEffect {
         activeEffect = this;
         return this._fn();
     }
+
+    stop() {
+        this.depsAry.forEach(deps => {
+            deps.delete(this);
+        });
+    }
 }
 
 export function effect(fn: Function, options: EffectOption = {}) {
     const _effect = new ReactiveEffect(fn, options.scheduler);
     _effect.run();
-    return _effect.run.bind(_effect);
+    const runner: RunnerType = _effect.run.bind(_effect);
+    runner.effect = _effect;
+    return runner;
+}
+
+
+export function stop(runner: RunnerType) {
+    runner.effect?.stop();
 }
 
 const bucket: Bucket = new WeakMap();
@@ -39,7 +60,9 @@ export function track(target: object, key: string | symbol) {
     if (!deps) {
         depMap.set(key, (deps = new Set()));
     }
+    if (!activeEffect) return;
     deps.add(activeEffect);
+    activeEffect.depsAry.push(deps);
 }
 
 export function trigger(target: object, key: string | symbol) {
@@ -47,9 +70,9 @@ export function trigger(target: object, key: string | symbol) {
     if (!depMap) return;
     const deps = depMap.get(key);
     deps && deps.forEach(effect => {
-        if (effect._scheduler){
+        if (effect._scheduler) {
             return effect._scheduler();
         }
-        effect.run()
+        effect.run();
     });
 }
