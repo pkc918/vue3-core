@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { reactive } from "../reactive";
-import { effect } from "../effect";
+import { effect, stop } from "../effect";
 
 describe("test: effect", () => {
     it("should access", () => {
@@ -34,7 +34,7 @@ describe("test: effect", () => {
         let dummy: any;
         let run: any;
         const scheduler = vi.fn(() => {
-            run = runner
+            run = runner;
         });
         const obj = reactive({
             foo: 10
@@ -42,12 +42,29 @@ describe("test: effect", () => {
         const runner = effect(() => {
             dummy = obj.foo;
         }, {scheduler});
-        expect(dummy).toBe(10)
+        expect(dummy).toBe(10);
         expect(scheduler).not.toBeCalled();
         obj.foo++;
-        expect(dummy).toBe(10)
-        expect(scheduler).toBeCalledTimes(1)
+        expect(dummy).toBe(10);
+        expect(scheduler).toBeCalledTimes(1);
         run();
-        expect(dummy).toBe(11)
+        expect(dummy).toBe(11);
+    });
+
+    it("stop event", () => {
+        let dummy: any;
+        const obj = reactive({
+            prop: 1
+        });
+        const runner = effect(() => {
+            dummy = obj.prop;
+        });
+        obj.prop = 2;
+        expect(dummy).toBe(2);
+        stop(runner);
+        obj.prop = 3;
+        expect(dummy).toBe(2);
+        runner();
+        expect(dummy).toBe(3);
     });
 });
