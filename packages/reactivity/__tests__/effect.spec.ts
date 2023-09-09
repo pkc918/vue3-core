@@ -67,4 +67,20 @@ describe("test: effect", () => {
         runner();
         expect(dummy).toBe(3);
     });
+
+    it("should trigger onStop event when called stop", () => {
+        let dummy: any
+        const onStop = vi.fn();
+        const obj = reactive({
+            prop: 1
+        })
+        const runner = effect(() => {
+            dummy = obj.prop
+        }, {
+            onStop
+        })
+        expect(dummy).toBe(1)
+        stop(runner)
+        expect(onStop).toBeCalledTimes(1)
+    })
 });
