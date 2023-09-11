@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { readonly } from "../reactive";
+import { isReadonly, readonly } from "../reactive";
 
 describe("test: readonly", () => {
     test("base usage", () => {
@@ -9,6 +9,8 @@ describe("test: readonly", () => {
         const wrapped = readonly(original);
         expect(wrapped).not.toBe(original);
         expect(wrapped.val).toBe(1);
+        expect(isReadonly(original)).toBe(false);
+        expect(isReadonly(wrapped)).toBe(true);
     });
 
     test("warn when call set", () => {
