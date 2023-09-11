@@ -1,4 +1,5 @@
 import { track, trigger } from "./effect";
+import { Keys } from "./reactive";
 
 const get = createGetter();
 const set = createSetter();
@@ -6,7 +7,7 @@ const readonlyGet = createGetter(true);
 
 function createGetter(isReadonly = false) {
     return function get(target, key) {
-        if (key === "__is_Reactive") {
+        if (key === Keys.IS_REACTIVE) {
             return !isReadonly;
         }
         if (!isReadonly) {

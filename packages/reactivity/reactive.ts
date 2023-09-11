@@ -1,5 +1,9 @@
 import { mutableHandlers, readonlyHandlers } from "./baseHandlers";
 
+export const enum Keys {
+    IS_REACTIVE = "__IS_REACTIVE"
+}
+
 export function reactive<T extends Object>(target: T): T {
     return createActiveObject(target, mutableHandlers);
 }
@@ -13,5 +17,5 @@ function createActiveObject<T extends Object>(target: T, handlers: ProxyHandler<
 }
 
 export function isReactive(target){
-    return target["__is_Reactive"]
+    return target[Keys.IS_REACTIVE]
 }
