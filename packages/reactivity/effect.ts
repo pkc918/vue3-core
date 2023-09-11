@@ -1,8 +1,8 @@
 import { extend } from "../shared";
 
 export type Deps = Set<ReactiveEffect>
-export type DepMap = Map<string | symbol, Deps>
-export type Bucket = WeakMap<object, DepMap>
+export type DepMap = Map<PropertyKey, Deps>
+export type Bucket = WeakMap<Object, DepMap>
 
 export interface EffectOption {
     scheduler?: Function;
@@ -11,7 +11,6 @@ export interface EffectOption {
 
 interface RunnerType {
     effect?: ReactiveEffect;
-
     (): any;
 }
 
@@ -62,7 +61,7 @@ export function stop(runner: RunnerType) {
 
 const bucket: Bucket = new WeakMap();
 
-export function track(target: object, key: string | symbol) {
+export function track(target: Object, key: PropertyKey) {
     let depMap = bucket.get(target);
     if (!depMap) {
         bucket.set(target, (depMap = new Map()));
@@ -76,7 +75,7 @@ export function track(target: object, key: string | symbol) {
     activeEffect.depsAry.push(deps);
 }
 
-export function trigger(target: object, key: string | symbol) {
+export function trigger(target: Object, key: PropertyKey) {
     const depMap = bucket.get(target);
     if (!depMap) return;
     const deps = depMap.get(key);
