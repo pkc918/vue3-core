@@ -11,3 +11,7 @@ export function readonly<T extends Object>(target: T): T {
 function createActiveObject<T extends Object>(target: T, handlers: ProxyHandler<T>) {
     return new Proxy(target, handlers);
 }
+
+export function isReactive(target){
+    return target["__is_Reactive"]
+}

@@ -6,6 +6,9 @@ const readonlyGet = createGetter(true);
 
 function createGetter(isReadonly = false) {
     return function get(target, key) {
+        if (key === "__is_Reactive") {
+            return !isReadonly;
+        }
         if (!isReadonly) {
             track(target, key);
         }
