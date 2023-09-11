@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { reactive } from "../reactive";
+import { isReactive, reactive } from "../reactive";
 
 describe("test: reactive", () => {
     it('should access', () => {
@@ -7,5 +7,6 @@ describe("test: reactive", () => {
         const proxyData = reactive(original);
         expect(original).not.toBe(proxyData);
         expect(original.foo).toBe(1);
+        expect(isReactive(proxyData)).toBe(true);
     });
 });
