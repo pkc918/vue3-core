@@ -17,7 +17,6 @@ export function shallowReadonly(target){
     return createActiveObject(target, shallowReadonlyHandlers)
 }
 
-
 function createActiveObject<T extends Object>(target: T, handlers: ProxyHandler<T>) {
     return new Proxy(target, handlers);
 }
@@ -28,4 +27,8 @@ export function isReactive(target){
 
 export function isReadonly(target){
     return !!target[ReactiveFlags.IS_READONLY]
+}
+
+export function isProxy(val) {
+    return isReadonly(val) || isReactive(val);
 }
