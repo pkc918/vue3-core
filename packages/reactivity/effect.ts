@@ -15,11 +15,13 @@ interface RunnerType {
 }
 
 let activeEffect: ReactiveEffect;
+let shouldTrack: Boolean;
 
 class ReactiveEffect {
     public depsAry: Deps[] = [];
     public onStop?: Function;
     public _scheduler?: Function;
+    public active: Boolean = true;
     private readonly _fn: Function;
 
     constructor(fn: Function, scheduler?: Function) {
@@ -28,15 +30,27 @@ class ReactiveEffect {
     }
 
     run() {
+        if (!this.active){
+            // after trigger stop
+            return this._fn();
+        }
+        // open track effect
+        shouldTrack = true;
         activeEffect = this;
-        return this._fn();
+        const res = this._fn();
+        // prevent track effect after stop
+        shouldTrack = false;
+        return res;
     }
 
     stop() {
-        if (this.onStop) {
-            this.onStop();
+        if (this.active) {
+            cleanup(this);
+            if (this.onStop) {
+                this.onStop();
+            }
+            this.active = false;
         }
-        cleanup(this);
     }
 }
 
@@ -71,6 +85,7 @@ export function track(target: Object, key: PropertyKey) {
         depMap.set(key, (deps = new Set()));
     }
     if (!activeEffect) return;
+    if (!shouldTrack) return;
     deps.add(activeEffect);
     activeEffect.depsAry.push(deps);
 }
