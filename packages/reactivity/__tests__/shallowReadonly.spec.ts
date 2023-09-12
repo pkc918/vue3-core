@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { isReadonly, readonly, shallowReadonly } from "../reactive";
+import { isReadonly, shallowReadonly } from "../reactive";
 
 describe("test: shallowReadonly", () => {
     test("should not make non-reactive properties reactive", () => {
