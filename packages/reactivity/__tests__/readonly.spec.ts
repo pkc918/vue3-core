@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { isReadonly, readonly } from "../reactive";
+import { isProxy, isReadonly, readonly } from "../reactive";
 
 describe("test: readonly", () => {
     test("base usage", () => {
@@ -16,6 +16,7 @@ describe("test: readonly", () => {
         expect(isReadonly(wrapped.nested)).toBe(true);
         expect(isReadonly(wrapped.ary)).toBe(true);
         expect(isReadonly(wrapped.ary[0])).toBe(true);
+        expect(isProxy(wrapped)).toBe(true);
     });
 
     test("warn when call set", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isReactive, reactive } from "../reactive";
+import { isProxy, isReactive, reactive } from "../reactive";
 
 describe("test: reactive", () => {
     it('should access', () => {
@@ -8,6 +8,7 @@ describe("test: reactive", () => {
         expect(original).not.toBe(proxyData);
         expect(original.foo).toBe(1);
         expect(isReactive(proxyData)).toBe(true);
+        expect(isProxy(proxyData)).toBe(true);
     });
 
     it("should deep reactive", () => {
