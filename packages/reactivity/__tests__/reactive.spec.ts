@@ -9,4 +9,18 @@ describe("test: reactive", () => {
         expect(original.foo).toBe(1);
         expect(isReactive(proxyData)).toBe(true);
     });
+
+    it("should deep reactive", () => {
+        const original = {
+            nested: {
+                val: 1
+            },
+            ary: [{val: 2}]
+        };
+        const observed = reactive(original);
+        expect(isReactive(observed)).toBe(true);
+        expect(isReactive(observed.nested)).toBe(true);
+        expect(isReactive(observed.ary)).toBe(true);
+        expect(isReactive(observed.ary[0])).toBe(true);
+    });
 });

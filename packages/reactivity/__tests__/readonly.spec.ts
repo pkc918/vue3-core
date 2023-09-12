@@ -4,13 +4,18 @@ import { isReadonly, readonly } from "../reactive";
 describe("test: readonly", () => {
     test("base usage", () => {
         const original = {
-            val: 1
+            val: 1,
+            nested: {val: 2},
+            ary: [{val: 3}]
         };
         const wrapped = readonly(original);
         expect(wrapped).not.toBe(original);
         expect(wrapped.val).toBe(1);
         expect(isReadonly(original)).toBe(false);
         expect(isReadonly(wrapped)).toBe(true);
+        expect(isReadonly(wrapped.nested)).toBe(true);
+        expect(isReadonly(wrapped.ary)).toBe(true);
+        expect(isReadonly(wrapped.ary[0])).toBe(true);
     });
 
     test("warn when call set", () => {
