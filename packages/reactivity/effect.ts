@@ -75,7 +75,12 @@ export function stop(runner: RunnerType) {
 
 const bucket: Bucket = new WeakMap();
 
+function isTracking() {
+    return shouldTrack && activeEffect !== undefined;
+}
+
 export function track(target: Object, key: PropertyKey) {
+    if (!isTracking()) return;
     let depMap = bucket.get(target);
     if (!depMap) {
         bucket.set(target, (depMap = new Map()));
@@ -84,8 +89,7 @@ export function track(target: Object, key: PropertyKey) {
     if (!deps) {
         depMap.set(key, (deps = new Set()));
     }
-    if (!activeEffect) return;
-    if (!shouldTrack) return;
+    if (deps.has(activeEffect)) return;
     deps.add(activeEffect);
     activeEffect.depsAry.push(deps);
 }
