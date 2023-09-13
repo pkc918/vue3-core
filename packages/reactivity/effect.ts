@@ -75,7 +75,7 @@ export function stop(runner: RunnerType) {
 
 const bucket: Bucket = new WeakMap();
 
-function isTracking() {
+export function isTracking() {
     return shouldTrack && activeEffect !== undefined;
 }
 
@@ -89,6 +89,10 @@ export function track(target: Object, key: PropertyKey) {
     if (!deps) {
         depMap.set(key, (deps = new Set()));
     }
+    trackEffects(deps);
+}
+
+export function trackEffects(deps: Deps) {
     if (deps.has(activeEffect)) return;
     deps.add(activeEffect);
     activeEffect.depsAry.push(deps);
@@ -98,6 +102,10 @@ export function trigger(target: Object, key: PropertyKey) {
     const depMap = bucket.get(target);
     if (!depMap) return;
     const deps = depMap.get(key);
+    triggerEffects(deps);
+}
+
+export function triggerEffects(deps: Deps | undefined) {
     deps && deps.forEach(effect => {
         if (effect._scheduler) {
             return effect._scheduler();
