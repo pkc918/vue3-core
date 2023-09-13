@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
-import { ref } from "../ref";
+import { isRef, ref, unRef } from "../ref";
 import { effect } from "../effect";
+import { reactive } from "../reactive";
 
 describe("test: ref", () => {
     test("ref basic usage", () => {
@@ -41,5 +42,24 @@ describe("test: ref", () => {
             val: 3
         };
         expect(dummy).toBe(3);
+    });
+
+    test("isRef event", () => {
+        const original = ref(1);
+        const num = 1;
+        const data = reactive({
+            val: 1
+        });
+        expect(isRef(original)).toBe(true);
+        expect(isRef(num)).toBe(false);
+        expect(isRef(data)).toBe(false);
+    });
+
+    test("unRef event", () => {
+        console.warn = vi.fn();
+        const original = ref(1);
+        expect(unRef(original)).toBe(1);
+        expect(unRef(1));
+        expect(console.warn).toBeCalled();
     });
 });
