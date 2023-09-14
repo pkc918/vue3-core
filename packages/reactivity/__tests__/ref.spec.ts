@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { isRef, ref, unRef } from "../ref";
+import { isRef, proxyRefs, ref, unRef } from "../ref";
 import { effect } from "../effect";
 import { reactive } from "../reactive";
 
@@ -61,5 +61,21 @@ describe("test: ref", () => {
         expect(unRef(original)).toBe(1);
         expect(unRef(1));
         expect(console.warn).toBeCalled();
+    });
+
+    test("proxyRefs event", () => {
+        const obj = {
+            refVal: ref(1),
+            num: 1
+        };
+        const original = proxyRefs(obj);
+        expect(obj.refVal.value).toBe(1);
+        expect(original.refVal).toBe(1);
+        original.refVal = 2;
+        expect(original.refVal).toBe(2);
+        expect(obj.refVal.value).toBe(2);
+        original.refVal = ref(3);
+        expect(original.refVal).toBe(3);
+        expect(obj.refVal.value).toBe(3);
     });
 });
