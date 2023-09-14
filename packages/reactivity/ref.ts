@@ -54,3 +54,19 @@ export function unRef(ref: any) {
     console.warn(`${ref} is not RefImpl`);
     return ref;
 }
+
+export function proxyRefs(target: any) {
+    return new Proxy(target, {
+        get(target: any, key: string | symbol) {
+            const res = Reflect.get(target, key);
+            return isRef(res) ? res.value : res;
+        },
+        set(target: any, key: string | symbol, newValue: any) {
+            const val = Reflect.get(target, key);
+            if (isRef(val) && !isRef(newValue)) {
+                return (val.value = newValue);
+            }
+            return Reflect.set(target, key, newValue);
+        }
+    });
+}
