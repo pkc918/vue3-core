@@ -17,7 +17,7 @@ interface RunnerType {
 let activeEffect: ReactiveEffect;
 let shouldTrack: Boolean;
 
-class ReactiveEffect {
+export class ReactiveEffect {
     public depsAry: Deps[] = [];
     public onStop?: Function;
     public _scheduler?: Function;
