@@ -5,7 +5,12 @@
 # project plugin
 node_modules
 dist
+
+# test
 example
+
+# build
+lib
 
 # Logs
 logs
