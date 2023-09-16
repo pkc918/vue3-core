@@ -5,6 +5,7 @@
 # project plugin
 node_modules
 dist
+example
 
 # Logs
 logs
