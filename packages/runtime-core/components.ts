@@ -1,5 +1,6 @@
 import { patch } from "./renderer";
 import { VNode } from "./vnode";
+import { publicInstanceProxyHandlers } from "./componentPublicInstance";
 
 export interface ComponentInstance {
     vnode: VNode;
@@ -29,18 +30,12 @@ export function setupComponent(instance: ComponentInstance) {
 export function setupRenderEffect(instance: ComponentInstance, container: any) {
     const subTree = instance.render?.call(instance.proxy);
     patch(subTree, container);
+    instance.vnode.el = subTree.el;
 }
 
 function setupStatefulComponent(instance: ComponentInstance) {
     const Component = instance.type;
-    instance.proxy = new Proxy({}, {
-        get(_: object, key: string | symbol): any {
-            const {setupState} = instance;
-            if (key in setupState) {
-                return Reflect.get(setupState, key);
-            }
-        }
-    });
+    instance.proxy = new Proxy({_: instance}, publicInstanceProxyHandlers);
     const {setup} = Component;
     if (setup) {
         const setupResult = setup();

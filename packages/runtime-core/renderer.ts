@@ -21,7 +21,7 @@ function processElement(vnode: VNode, container: any) {
 
 function mountElement(vnode: VNode, container: any) {
     const {type, props, children} = vnode;
-    const ele = document.createElement(type);
+    const ele = (vnode.el = document.createElement(type));
     for (const propsKey in props) {
         ele.setAttribute(propsKey, Reflect.get(props, propsKey));
     }
@@ -43,8 +43,8 @@ function processComponent(vnode: VNode, container: any) {
     mountComponent(vnode, container);
 }
 
-function mountComponent(vnode: VNode, container: any) {
-    const instance = createComponentInstance(vnode);
+function mountComponent(initialVNode: VNode, container: any) {
+    const instance = createComponentInstance(initialVNode);
     setupComponent(instance);
     setupRenderEffect(instance, container);
 }
