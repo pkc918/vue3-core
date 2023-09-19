@@ -1,8 +1,13 @@
-export function createVNode(type, props?, children?) {
-    const vnode = {
+export interface VNode {
+    type: any;
+    props?: any;
+    children?: any;
+}
+
+export function createVNode(type: any, props?: undefined, children?: undefined): VNode {
+    return {
         type,
         props,
         children
     };
-    return vnode;
 }
