@@ -1,4 +1,5 @@
 import { ComponentInstance } from "./components";
+import { hasOwn } from "../shared";
 
 export interface ComponentInstancePublicProperties{
     $el: Function
@@ -9,9 +10,12 @@ const publicPropertiesMap: ComponentInstancePublicProperties = {
 };
 export const publicInstanceProxyHandlers = {
     get({_: instance}: any, key: string | symbol) {
-        const {setupState} = instance;
-        if (key in setupState) {
+
+        const {setupState, props} = instance;
+        if (hasOwn(setupState, key)) {
             return Reflect.get(setupState, key);
+        } else if (hasOwn(props, key)) {
+            return Reflect.get(props, key);
         }
         const publicProperties = Reflect.get(publicPropertiesMap, key);
         if (publicProperties) {
