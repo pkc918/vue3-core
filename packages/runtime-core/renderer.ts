@@ -24,7 +24,14 @@ function mountElement(vnode: VNode, container: any) {
     const {type, props, children} = vnode;
     const ele = (vnode.el = document.createElement(type));
     for (const propsKey in props) {
-        ele.setAttribute(propsKey, Reflect.get(props, propsKey));
+        const customEvent = props[propsKey];
+        const isOn = (eventName: string) => /^on[A-Z]/.test(eventName);
+        if (isOn(propsKey)) {
+            const eventName = propsKey.slice(2).toLowerCase();
+            ele.addEventListener(eventName, customEvent);
+        } else {
+            ele.setAttribute(propsKey, Reflect.get(props, propsKey));
+        }
     }
     if (vnode.shapeFlag & ShapeFlags.TEXT_CHILDREN) {
         ele.append(children);
