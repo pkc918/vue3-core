@@ -3,29 +3,33 @@ import { VNode } from "./vnode";
 import { publicInstanceProxyHandlers } from "./componentPublicInstance";
 import { initProps } from "./componentProps";
 import { shallowReadonly } from "../reactivity/reactive";
+import { emit } from "./componentEmit";
 
 export interface ComponentInstance {
     vnode: VNode;
     type: any;
     setupState: object;
+    props: object;
     proxy?: object;
     render?: Function;
-    props: object;
+    emit: (eventName: string, ...args: any[]) => void;
 }
 
 export function createComponentInstance(vnode: VNode): ComponentInstance {
-    return {
+    const component: ComponentInstance = {
         vnode,
         type: vnode.type,
         setupState: {},
-        props: {}
-    };
+        props: {},
+        emit: () => {}
+    }
+    component.emit = emit.bind(null, component)
+    return component;
 }
 
 export function setupComponent(instance: ComponentInstance) {
     //TODO
     /*
-    * initProps
     * initSlots
     * */
     initProps(instance, instance.vnode.props);
@@ -43,7 +47,9 @@ function setupStatefulComponent(instance: ComponentInstance) {
     instance.proxy = new Proxy({_: instance}, publicInstanceProxyHandlers);
     const {setup} = Component;
     if (setup) {
-        const setupResult = setup(shallowReadonly(instance.props));
+        const setupResult = setup(shallowReadonly(instance.props), {
+            emit: instance.emit
+        });
         handleSetupResult(instance, setupResult);
     }
 }
