@@ -1,4 +1,4 @@
-import { ShapeFlags } from "../shared/shapeFlags";
+import { ShapeFlags, Text } from "../shared/shapeFlags";
 
 export interface VNode {
     type: any;
@@ -30,6 +30,10 @@ export function createVNode(type: any, props?: any, children?: any): VNode {
     }
 
     return vnode;
+}
+
+export function createTextVNode(text: string) {
+    return createVNode(Text, {}, text);
 }
 
 function getShapeFlag(type: any) {

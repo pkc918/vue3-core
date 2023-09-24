@@ -5,3 +5,6 @@ export const enum ShapeFlags {
     ARRAY_CHILDREN = 1 << 3,
     SLOTS_CHILDREN = 1 << 4
 }
+
+export const Fragment = Symbol("Fragment");
+export const Text = Symbol("Text");
