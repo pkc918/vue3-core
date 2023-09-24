@@ -14,7 +14,7 @@ export interface ComponentInstance {
     proxy?: object;
     render?: Function;
     emit: (eventName: string, ...args: any[]) => void;
-    slots?: any;
+    slots: object;
 }
 
 export function createComponentInstance(vnode: VNode): ComponentInstance {
@@ -23,6 +23,7 @@ export function createComponentInstance(vnode: VNode): ComponentInstance {
         type: vnode.type,
         setupState: {},
         props: {},
+        slots: {},
         emit: () => {}
     }
     component.emit = emit.bind(null, component)
