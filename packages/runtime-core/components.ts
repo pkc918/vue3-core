@@ -4,6 +4,7 @@ import { publicInstanceProxyHandlers } from "./componentPublicInstance";
 import { initProps } from "./componentProps";
 import { shallowReadonly } from "../reactivity/reactive";
 import { emit } from "./componentEmit";
+import { initSlots } from "./componentSlots";
 
 export interface ComponentInstance {
     vnode: VNode;
@@ -13,6 +14,7 @@ export interface ComponentInstance {
     proxy?: object;
     render?: Function;
     emit: (eventName: string, ...args: any[]) => void;
+    slots?: any;
 }
 
 export function createComponentInstance(vnode: VNode): ComponentInstance {
@@ -28,11 +30,8 @@ export function createComponentInstance(vnode: VNode): ComponentInstance {
 }
 
 export function setupComponent(instance: ComponentInstance) {
-    //TODO
-    /*
-    * initSlots
-    * */
     initProps(instance, instance.vnode.props);
+    initSlots(instance, instance.vnode.children);
     setupStatefulComponent(instance);
 }
 
