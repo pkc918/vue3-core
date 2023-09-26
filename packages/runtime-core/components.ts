@@ -1,4 +1,4 @@
-import { patch } from "./renderer";
+import { ParentComponent, patch } from "./renderer";
 import { VNode } from "./vnode";
 import { publicInstanceProxyHandlers } from "./componentPublicInstance";
 import { initProps } from "./componentProps";
@@ -15,15 +15,19 @@ export interface ComponentInstance {
     render?: Function;
     emit: (eventName: string, ...args: any[]) => void;
     slots: object;
+    provides: object;
+    parent?: ParentComponent;
 }
 
-export function createComponentInstance(vnode: VNode): ComponentInstance {
+export function createComponentInstance(vnode: VNode, parent: ParentComponent): ComponentInstance {
     const component: ComponentInstance = {
         vnode,
         type: vnode.type,
         setupState: {},
         props: {},
         slots: {},
+        provides: parent ? parent.provides : {}, // provides 的初始化的值一定是 parent，只是第一层的时候没有parent所以是空对象
+        parent,
         emit: () => {}
     }
     component.emit = emit.bind(null, component)
@@ -38,7 +42,7 @@ export function setupComponent(instance: ComponentInstance) {
 
 export function setupRenderEffect(instance: ComponentInstance, container: any) {
     const subTree = instance.render?.call(instance.proxy);
-    patch(subTree, container);
+    patch(subTree, container, instance);
     instance.vnode.el = subTree.el;
 }
 
