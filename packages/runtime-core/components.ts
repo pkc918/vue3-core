@@ -1,4 +1,4 @@
-import { ParentComponent, patch } from "./renderer";
+import { ParentComponent } from "./renderer";
 import { VNode } from "./vnode";
 import { publicInstanceProxyHandlers } from "./componentPublicInstance";
 import { initProps } from "./componentProps";
@@ -38,12 +38,6 @@ export function setupComponent(instance: ComponentInstance) {
     initProps(instance, instance.vnode.props);
     initSlots(instance, instance.vnode.children);
     setupStatefulComponent(instance);
-}
-
-export function setupRenderEffect(instance: ComponentInstance, container: any) {
-    const subTree = instance.render?.call(instance.proxy);
-    patch(subTree, container, instance);
-    instance.vnode.el = subTree.el;
 }
 
 function setupStatefulComponent(instance: ComponentInstance) {
