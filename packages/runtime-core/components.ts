@@ -5,6 +5,7 @@ import { initProps } from "./componentProps";
 import { shallowReadonly } from "../reactivity/reactive";
 import { emit } from "./componentEmit";
 import { initSlots } from "./componentSlots";
+import { proxyRefs } from "../reactivity/ref";
 
 export interface ComponentInstance {
     vnode: VNode;
@@ -17,6 +18,8 @@ export interface ComponentInstance {
     slots: object;
     provides: object;
     parent?: ParentComponent;
+    isMounted: boolean;
+    subTree: VNode | null;
 }
 
 export function createComponentInstance(vnode: VNode, parent: ParentComponent): ComponentInstance {
@@ -28,6 +31,8 @@ export function createComponentInstance(vnode: VNode, parent: ParentComponent): 
         slots: {},
         provides: parent ? parent.provides : {}, // provides 的初始化的值一定是 parent，只是第一层的时候没有parent所以是空对象
         parent,
+        isMounted: false,
+        subTree: null,
         emit: () => {}
     }
     component.emit = emit.bind(null, component)
@@ -60,7 +65,7 @@ function setupStatefulComponent(instance: ComponentInstance) {
 
 function handleSetupResult(instance: ComponentInstance, setupResult: any) {
     if (typeof setupResult === "object") {
-        instance.setupState = setupResult;
+        instance.setupState = proxyRefs(setupResult);
     }
     finishComponentSetup(instance);
 }
