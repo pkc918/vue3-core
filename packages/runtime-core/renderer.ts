@@ -1,6 +1,6 @@
 import { ComponentInstance, createComponentInstance, setupComponent } from "./components";
 import { VNode } from "./vnode";
-import { Fragment, Text, ShapeFlags, EMPTY_OBJ } from "../shared/shapeFlags";
+import { EMPTY_OBJ, Fragment, ShapeFlags, Text } from "../shared/shapeFlags";
 import { createAppAPI } from "./createApp";
 import { effect } from "../reactivity/effect";
 
@@ -63,11 +63,11 @@ export function createRenderer(options: RendererOptions) {
         const oldProps = n1.props || EMPTY_OBJ;
         const newProps = n2.props || EMPTY_OBJ;
         const el = (n2.el = n1.el);
-        patchChildren(n1, n2, container);
+        patchChildren(n1, n2, container, parentComponent);
         patchProps(el, oldProps, newProps);
     }
 
-    function patchChildren(n1: VNode, n2: VNode, container: any) {
+    function patchChildren(n1: VNode, n2: VNode, container: any, parentComponent: any) {
         /*
         * text -> text
         * array -> text
@@ -83,6 +83,11 @@ export function createRenderer(options: RendererOptions) {
             // 在 text -> text，array -> text 都能进入这个逻辑
             if (n1.children !== n2.children) {
                 hostSetElementText(container, n2.children);
+            }
+        } else if (n2.shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+            if (n1.shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+                hostSetElementText(container, "");
+                mountChildren(n2.children, container, parentComponent);
             }
         }
     }
@@ -108,7 +113,6 @@ export function createRenderer(options: RendererOptions) {
                     }
                 }
             }
-
         }
     }
 
@@ -117,7 +121,7 @@ export function createRenderer(options: RendererOptions) {
     }
 
     function processFragment(n1: VNode | null, n2: VNode, container: any, parentComponent: ParentComponent) {
-        mountChildren(n2, container, parentComponent);
+        mountChildren(n2.children, container, parentComponent);
     }
 
     function processText(n1: VNode | null, n2: VNode, container: any) {
@@ -134,7 +138,7 @@ export function createRenderer(options: RendererOptions) {
         if (vnode.shapeFlag & ShapeFlags.TEXT_CHILDREN) {
             ele.append(children);
         } else if (vnode.shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-            mountChildren(vnode, ele, parentComponent);
+            mountChildren(vnode.children, ele, parentComponent);
         }
         hostInsert(ele, container);
     }
@@ -145,8 +149,8 @@ export function createRenderer(options: RendererOptions) {
         setupRenderEffect(instance, container);
     }
 
-    function mountChildren(vnode: VNode, container: any, parentComponent: ParentComponent) {
-        vnode.children.map((child: any) => {
+    function mountChildren(children: VNode[], container: any, parentComponent: ParentComponent) {
+        children.map((child: any) => {
             patch(null, child, container, parentComponent);
         });
     }
@@ -171,9 +175,7 @@ export function createRenderer(options: RendererOptions) {
                 instance.subTree = subTree;
                 patch(prevSubTree, subTree, container, instance);
             }
-
         });
-
     }
 
     return {
