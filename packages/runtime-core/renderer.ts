@@ -1,6 +1,6 @@
 import { ComponentInstance, createComponentInstance, setupComponent } from "./components";
 import { VNode } from "./vnode";
-import { Fragment, Text, ShapeFlags } from "../shared/shapeFlags";
+import { Fragment, Text, ShapeFlags, EMPTY_OBJ } from "../shared/shapeFlags";
 import { createAppAPI } from "./createApp";
 import { effect } from "../reactivity/effect";
 
@@ -8,7 +8,7 @@ export type ParentComponent = ComponentInstance | null
 
 interface RendererOptions {
     createElement: (type: any) => any,
-    patchProp: (ele: any, key: any, value: any) => void,
+    patchProp: (ele: any, key: any, oldValue: any, newValue: any) => void,
     insert: (ele: any, parent: any) => void
 }
 
@@ -51,6 +51,30 @@ export function createRenderer(options: RendererOptions) {
         console.log("current: ", n2);
         console.log("prevent: ", n1);
         console.log(container, parentComponent);
+        // patchProps
+        const oldProps = n1.props || EMPTY_OBJ;
+        const newProps = n2.props || EMPTY_OBJ;
+        const el = (n2.el = n1.el);
+        patchProps(el, oldProps, newProps);
+    }
+
+    function patchProps(el: any, oldProps: any, newProps: any) {
+        if (oldProps !== newProps) {
+            for (const newPropsKey in newProps) {
+                const oldPropValue = oldProps[newPropsKey];
+                const newPropValue = newProps[newPropsKey];
+                hostPatchProp(el, newPropsKey, oldPropValue, newPropValue);
+            }
+            if (oldProps !== EMPTY_OBJ) {
+                for (const oldPropsKey in oldProps) {
+                    const oldPropValue = oldProps[oldPropsKey];
+                    if (!(oldPropsKey in newProps)) {
+                        hostPatchProp(el, oldPropsKey, oldPropValue, null);
+                    }
+                }
+            }
+
+        }
     }
 
     function processComponent(n1: VNode | null, n2: VNode, container: any, parentComponent: ParentComponent) {
@@ -70,7 +94,7 @@ export function createRenderer(options: RendererOptions) {
         const ele = (vnode.el = hostCreateElement(type));
         for (const propsKey in props) {
             const customEvent = Reflect.get(props, propsKey);
-            hostPatchProp(ele, propsKey, customEvent);
+            hostPatchProp(ele, propsKey, null, customEvent);
         }
         if (vnode.shapeFlag & ShapeFlags.TEXT_CHILDREN) {
             ele.append(children);
