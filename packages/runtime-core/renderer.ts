@@ -79,6 +79,9 @@ export function createRenderer(options: RendererOptions) {
                 // 1. 清空n1children
                 // 2. 设置n2children
                 unmountChildren(n1.children);
+            }
+            // 在 text -> text，array -> text 都能进入这个逻辑
+            if (n1.children !== n2.children) {
                 hostSetElementText(container, n2.children);
             }
         }
