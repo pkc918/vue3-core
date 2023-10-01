@@ -9,11 +9,19 @@ export type ParentComponent = ComponentInstance | null
 interface RendererOptions {
     createElement: (type: any) => any,
     patchProp: (ele: any, key: any, oldValue: any, newValue: any) => void,
-    insert: (ele: any, parent: any) => void
+    insert: (ele: any, parent: any) => void,
+    remove: (ele: any) => void,
+    setElementText: (container: any, text: any) => void
 }
 
 export function createRenderer(options: RendererOptions) {
-    const {createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert} = options;
+    const {
+        createElement: hostCreateElement,
+        patchProp: hostPatchProp,
+        insert: hostInsert,
+        remove: hostRemove,
+        setElementText: hostSetElementText
+    } = options;
 
     function render(vnode: VNode, container: any) {
         patch(null, vnode, container, null);
@@ -55,7 +63,31 @@ export function createRenderer(options: RendererOptions) {
         const oldProps = n1.props || EMPTY_OBJ;
         const newProps = n2.props || EMPTY_OBJ;
         const el = (n2.el = n1.el);
+        patchChildren(n1, n2, container);
         patchProps(el, oldProps, newProps);
+    }
+
+    function patchChildren(n1: VNode, n2: VNode, container: any) {
+        /*
+        * text -> text
+        * array -> text
+        * text -> array
+        * array -> array
+        * */
+        if (n2.shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+            if (n1.shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+                // 1. 清空n1children
+                // 2. 设置n2children
+                unmountChildren(n1.children);
+                hostSetElementText(container, n2.children);
+            }
+        }
+    }
+
+    function unmountChildren(children: VNode[]) {
+        for (let i = 0; i < children.length; i++) {
+            hostRemove(children[i].el);
+        }
     }
 
     function patchProps(el: any, oldProps: any, newProps: any) {
