@@ -2,6 +2,7 @@ import { ShapeFlags, Text } from "../shared/shapeFlags";
 
 export interface VNode {
     type: any;
+    key?: any;
     props?: any;
     children?: any;
     el?: any;
@@ -11,6 +12,7 @@ export interface VNode {
 export function createVNode(type: any, props?: any, children?: any): VNode {
     const vnode = {
         type,
+        key: props && props.key,
         props,
         children,
         el: null,
