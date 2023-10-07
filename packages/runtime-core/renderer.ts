@@ -144,6 +144,44 @@ export function createRenderer(options: RendererOptions) {
                 hostRemove(c1[i].el);
                 i++;
             }
+        } else {
+            const s1 = i;
+            const s2 = i;
+            let nextIndex: null | number = null;
+            let patched = 0;
+            const toBePatched = e2 - s2 + 1;
+
+            const keyToNewIndexMap = new Map();
+            for (let i = s2; i <= e2; i++) {
+                const newChild = c2[i];
+                keyToNewIndexMap.set(newChild.key, i);
+            }
+
+            for (let i = s1; i <= e1; i++) {
+                const preChild = c1[i];
+
+                if (patched >= toBePatched) {
+                    hostRemove(preChild.el);
+                    continue;
+                }
+
+                if (preChild.key) {
+                    nextIndex = keyToNewIndexMap.get(preChild.key);
+                } else {
+                    for (let j = s2; j < e2; j++) {
+                        if (isSomeVNodeType(preChild, c2[j])) {
+                            nextIndex = j;
+                        }
+                    }
+                }
+
+                if (!nextIndex) {
+                    hostRemove(preChild.el);
+                } else {
+                    patch(preChild, c2[nextIndex], container, parentComponent, null);
+                    patched++;
+                }
+            }
         }
     }
 
