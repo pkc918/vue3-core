@@ -130,12 +130,19 @@ export function createRenderer(options: RendererOptions) {
         // new children length > old children length
         if (i > e1) {
             if (i <= e2) {
-                const nextPos = i + 1;
-                const anchor = (i + 1 > c2.length) ? null : c2[nextPos].el;
+                const nextPos = e2 + 1;
+                debugger
+                const anchor = (nextPos >= c2.length) ? null : c2[nextPos].el;
                 while (i <= e2) {
                     patch(null, c2[i], container, parentComponent, anchor);
                     i++;
                 }
+            }
+        } else if (i > e2) {
+            // cab -> ab
+            while (i <= e1) {
+                hostRemove(c1[i].el);
+                i++;
             }
         }
     }
