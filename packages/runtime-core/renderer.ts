@@ -150,6 +150,8 @@ export function createRenderer(options: RendererOptions) {
             let newIndex: null | number = null;
             let patched = 0;
             const toBePatched = e2 - s2 + 1;
+            let moved = false;
+            let maxNewIndex = 0;
 
             const keyToNewIndexMap = new Map();
             for (let i = s2; i <= e2; i++) {
@@ -188,7 +190,11 @@ export function createRenderer(options: RendererOptions) {
                     /*
                     * 首先，它是按照老节点顺序查找，由小到大，如果不是，那就说明该节点需要移动，否则不需要
                     */
-
+                    if (newIndex >= maxNewIndex) {
+                        maxNewIndex = newIndex;
+                    } else {
+                        moved = true;
+                    }
                     // 当前找到的下表是 newIndex，但是需要对应到从0开始，所以需要减去前面相同部分，归0
                     // 赋的值是当前 i，因为 0 有特殊含义，所以需要 +1
                     newIndexToOldIndexMap[newIndex - s2] = i + 1;
@@ -208,7 +214,7 @@ export function createRenderer(options: RendererOptions) {
                 if (newIndexToOldIndexMap[j] === 0) {
                     // 说明旧无，新有的节点
                     // patch(null, )
-                } else {
+                } else if (moved) {
                     // increasingNewIndexSequence 存储的是最长连续字串的下标，
                     // 所以当 j 和 increasingNewIndexSequence对应位置（比如j是最后一个元素，那么对比的increasing...里面也是最后一个元素）的值相同时，
                     // 就说明存在节点
