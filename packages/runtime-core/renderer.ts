@@ -101,7 +101,8 @@ export function createRenderer(options: RendererOptions) {
 
         // left
         let e1 = c1.length - 1;
-        let e2 = c2.length - 1;
+        let l2 = c2.length;
+        let e2 = l2 - 1;
         let i = 0;
         while (i <= e1 && i <= e2) {
             let n1 = c1[i];
@@ -131,8 +132,7 @@ export function createRenderer(options: RendererOptions) {
         if (i > e1) {
             if (i <= e2) {
                 const nextPos = e2 + 1;
-                debugger
-                const anchor = (nextPos >= c2.length) ? null : c2[nextPos].el;
+                const anchor = (nextPos >= l2) ? null : c2[nextPos].el;
                 while (i <= e2) {
                     patch(null, c2[i], container, parentComponent, anchor);
                     i++;
@@ -147,7 +147,7 @@ export function createRenderer(options: RendererOptions) {
         } else {
             const s1 = i;
             const s2 = i;
-            let nextIndex: null | number = null;
+            let newIndex: null | number = null;
             let patched = 0;
             const toBePatched = e2 - s2 + 1;
 
@@ -155,6 +155,13 @@ export function createRenderer(options: RendererOptions) {
             for (let i = s2; i <= e2; i++) {
                 const newChild = c2[i];
                 keyToNewIndexMap.set(newChild.key, i);
+            }
+
+            // 建立一个对应新数组需要移动的地方的值，value是对应旧数组中移动区域的各元素的位置
+            const newIndexToOldIndexMap = new Array(toBePatched);
+            // 初始值为 0，最后可以判断如果是0，那就需要新建节点，否则都只需要移动
+            for (let i = 0; i < toBePatched; i++) {
+                newIndexToOldIndexMap[i] = 0;
             }
 
             for (let i = s1; i <= e1; i++) {
@@ -166,20 +173,52 @@ export function createRenderer(options: RendererOptions) {
                 }
 
                 if (preChild.key) {
-                    nextIndex = keyToNewIndexMap.get(preChild.key);
+                    newIndex = keyToNewIndexMap.get(preChild.key);
                 } else {
                     for (let j = s2; j < e2; j++) {
                         if (isSomeVNodeType(preChild, c2[j])) {
-                            nextIndex = j;
+                            newIndex = j;
                         }
                     }
                 }
 
-                if (!nextIndex) {
+                if (!newIndex) {
                     hostRemove(preChild.el);
                 } else {
-                    patch(preChild, c2[nextIndex], container, parentComponent, null);
+                    /*
+                    * 首先，它是按照老节点顺序查找，由小到大，如果不是，那就说明该节点需要移动，否则不需要
+                    */
+
+                    // 当前找到的下表是 newIndex，但是需要对应到从0开始，所以需要减去前面相同部分，归0
+                    // 赋的值是当前 i，因为 0 有特殊含义，所以需要 +1
+                    newIndexToOldIndexMap[newIndex - s2] = i + 1;
+                    patch(preChild, c2[newIndex], container, parentComponent, null);
                     patched++;
+                }
+            }
+
+            // 返回最长连续子串
+            const increasingNewIndexSequence = getSequence(newIndexToOldIndexMap) || [];
+            let sequenceIndex = increasingNewIndexSequence.length - 1;
+            for (let j = toBePatched - 1; j >= 0; j--) {
+                const nextIndex = j + s2; // 得到当前循环的位置的真实对应新节点中的位置
+                const nextChild = c2[nextIndex];
+                const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null;
+
+                if (newIndexToOldIndexMap[j] === 0) {
+                    // 说明旧无，新有的节点
+                    // patch(null, )
+                } else {
+                    // increasingNewIndexSequence 存储的是最长连续字串的下标，
+                    // 所以当 j 和 increasingNewIndexSequence对应位置（比如j是最后一个元素，那么对比的increasing...里面也是最后一个元素）的值相同时，
+                    // 就说明存在节点
+                    if (sequenceIndex < 0 || j !== increasingNewIndexSequence[sequenceIndex]) {
+                        // 有值且不相等的时候，就是需要移动了
+                        hostInsert(nextChild.el, container, anchor);
+                    } else {
+                        // 相同的时候说明，位置和元素都是没问题的，不用处理，继续下一个
+                        sequenceIndex--;
+                    }
                 }
             }
         }
@@ -269,6 +308,47 @@ export function createRenderer(options: RendererOptions) {
                 patch(prevSubTree, subTree, container, instance, anchor);
             }
         });
+    }
+
+    function getSequence(arr: number[]): number[] {
+        const p = arr.slice();
+        const result = [0];
+        let i: number, j: number, u: number, v: number, c: number;
+        const len = arr.length;
+        for (i = 0; i < len; i++) {
+            const arrI = arr[i];
+            if (arrI !== 0) {
+                j = result[result.length - 1];
+                if (arr[j] < arrI) {
+                    p[i] = j;
+                    result.push(i);
+                    continue;
+                }
+                u = 0;
+                v = result.length - 1;
+                while (u < v) {
+                    c = (u + v) >> 1;
+                    if (arr[result[c]] < arrI) {
+                        u = c + 1;
+                    } else {
+                        v = c;
+                    }
+                }
+                if (arrI < arr[result[u]]) {
+                    if (u > 0) {
+                        p[i] = result[u - 1];
+                    }
+                    result[u] = i;
+                }
+            }
+        }
+        u = result.length;
+        v = result[u - 1];
+        while (u-- > 0) {
+            result[u] = v;
+            v = p[v];
+        }
+        return result;
     }
 
     return {
