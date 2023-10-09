@@ -207,20 +207,20 @@ export function createRenderer(options: RendererOptions) {
             const increasingNewIndexSequence = getSequence(newIndexToOldIndexMap) || [];
             let sequenceIndex = increasingNewIndexSequence.length - 1;
             for (let j = toBePatched - 1; j >= 0; j--) {
-                const nextIndex = j + s2; // 得到当前循环的位置的真实对应新节点中的位置
-                const nextChild = c2[nextIndex];
-                const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null;
+                const currentReallyIndex = j + s2; // 得到当前循环的位置的真实对应新节点中的位置
+                const currentChild = c2[currentReallyIndex];
+                const anchor = currentReallyIndex + 1 < l2 ? c2[currentReallyIndex + 1].el : null;
 
                 if (newIndexToOldIndexMap[j] === 0) {
                     // 说明旧无，新有的节点
-                    // patch(null, )
+                    patch(null, currentChild, container, parentComponent, anchor);
                 } else if (moved) {
                     // increasingNewIndexSequence 存储的是最长连续字串的下标，
                     // 所以当 j 和 increasingNewIndexSequence对应位置（比如j是最后一个元素，那么对比的increasing...里面也是最后一个元素）的值相同时，
                     // 就说明存在节点
                     if (sequenceIndex < 0 || j !== increasingNewIndexSequence[sequenceIndex]) {
                         // 有值且不相等的时候，就是需要移动了
-                        hostInsert(nextChild.el, container, anchor);
+                        hostInsert(currentChild.el, container, anchor);
                     } else {
                         // 相同的时候说明，位置和元素都是没问题的，不用处理，继续下一个
                         sequenceIndex--;
