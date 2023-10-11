@@ -4,11 +4,13 @@ import { hasOwn } from "../shared";
 export interface ComponentInstancePublicProperties{
     $el: Function;
     $slots: Function;
+    $props: Function;
 }
 
 const publicPropertiesMap: ComponentInstancePublicProperties = {
     $el: (instance: ComponentInstance) => instance.vnode.el,
-    $slots: (instance: ComponentInstance) => instance.slots
+    $slots: (instance: ComponentInstance) => instance.slots,
+    $props: (instance: ComponentInstance) => instance.props
 };
 export const publicInstanceProxyHandlers = {
     get({_: instance}: any, key: string | symbol) {

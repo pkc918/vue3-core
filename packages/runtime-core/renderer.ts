@@ -3,6 +3,7 @@ import { VNode } from "./vnode";
 import { EMPTY_OBJ, Fragment, ShapeFlags, Text } from "../shared/shapeFlags";
 import { createAppAPI } from "./createApp";
 import { effect } from "../reactivity/effect";
+import { shouldUpdateComponent } from "./componentUpdateUtils";
 
 export type ParentComponent = ComponentInstance | null
 
@@ -255,7 +256,13 @@ export function createRenderer(options: RendererOptions) {
     }
 
     function processComponent(n1: VNode | null, n2: VNode, container: any, parentComponent: ParentComponent, anchor: any) {
-        mountComponent(n2, container, parentComponent, anchor);
+        if (!n1) {
+            mountComponent(n2, container, parentComponent, anchor);
+        } else {
+            console.log("updateComponent");
+            // 只需要调用组件的 runner 就能重新更新了
+            updateComponent(n1, n2);
+        }
     }
 
     function processFragment(n1: VNode | null, n2: VNode, container: any, parentComponent: ParentComponent, anchor: any) {
@@ -282,7 +289,7 @@ export function createRenderer(options: RendererOptions) {
     }
 
     function mountComponent(initialVNode: VNode, container: any, parentComponent: ParentComponent, anchor: any) {
-        const instance = createComponentInstance(initialVNode, parentComponent);
+        const instance = (initialVNode.component = createComponentInstance(initialVNode, parentComponent));
         setupComponent(instance);
         setupRenderEffect(instance, container, anchor);
     }
@@ -301,13 +308,18 @@ export function createRenderer(options: RendererOptions) {
 
 
     function setupRenderEffect(instance: ComponentInstance, container: any, anchor: any) {
-        effect(() => {
+        instance.update = effect(() => {
             if (!instance.isMounted) {
                 const subTree = (instance.subTree = instance.render?.call(instance.proxy));
                 patch(null, subTree, container, instance, anchor);
                 instance.vnode.el = subTree.el;
                 instance.isMounted = true;
             } else {
+                const {next, vnode} = instance;
+                if (next) {
+                    next.el = vnode.el;
+                    updateComponentPreRender(instance, next);
+                }
                 const subTree = instance.render?.call(instance.proxy);
                 const prevSubTree = instance.subTree;
                 instance.subTree = subTree;
@@ -316,48 +328,66 @@ export function createRenderer(options: RendererOptions) {
         });
     }
 
-    function getSequence(arr: number[]): number[] {
-        const p = arr.slice();
-        const result = [0];
-        let i: number, j: number, u: number, v: number, c: number;
-        const len = arr.length;
-        for (i = 0; i < len; i++) {
-            const arrI = arr[i];
-            if (arrI !== 0) {
-                j = result[result.length - 1];
-                if (arr[j] < arrI) {
-                    p[i] = j;
-                    result.push(i);
-                    continue;
-                }
-                u = 0;
-                v = result.length - 1;
-                while (u < v) {
-                    c = (u + v) >> 1;
-                    if (arr[result[c]] < arrI) {
-                        u = c + 1;
-                    } else {
-                        v = c;
-                    }
-                }
-                if (arrI < arr[result[u]]) {
-                    if (u > 0) {
-                        p[i] = result[u - 1];
-                    }
-                    result[u] = i;
-                }
-            }
-        }
-        u = result.length;
-        v = result[u - 1];
-        while (u-- > 0) {
-            result[u] = v;
-            v = p[v];
-        }
-        return result;
-    }
-
     return {
         createApp: createAppAPI(render)
     };
+}
+
+function updateComponent(n1: VNode, n2: VNode) {
+    // 在组件初始化时，存储了component instance
+    const instance = (n2.component = n1.component) as ComponentInstance;
+    if (shouldUpdateComponent(n1, n2)) {
+        instance.next = n2;
+        instance.update?.();
+    } else {
+        n2.el = n1.el;
+        instance.vnode = n2;
+    }
+}
+
+function updateComponentPreRender(instance: ComponentInstance, nextVNode: VNode) {
+    instance.vnode = nextVNode;
+    instance.next = null;
+    instance.props = nextVNode.props;
+}
+
+function getSequence(arr: number[]): number[] {
+    const p = arr.slice();
+    const result = [0];
+    let i: number, j: number, u: number, v: number, c: number;
+    const len = arr.length;
+    for (i = 0; i < len; i++) {
+        const arrI = arr[i];
+        if (arrI !== 0) {
+            j = result[result.length - 1];
+            if (arr[j] < arrI) {
+                p[i] = j;
+                result.push(i);
+                continue;
+            }
+            u = 0;
+            v = result.length - 1;
+            while (u < v) {
+                c = (u + v) >> 1;
+                if (arr[result[c]] < arrI) {
+                    u = c + 1;
+                } else {
+                    v = c;
+                }
+            }
+            if (arrI < arr[result[u]]) {
+                if (u > 0) {
+                    p[i] = result[u - 1];
+                }
+                result[u] = i;
+            }
+        }
+    }
+    u = result.length;
+    v = result[u - 1];
+    while (u-- > 0) {
+        result[u] = v;
+        v = p[v];
+    }
+    return result;
 }

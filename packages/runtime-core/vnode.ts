@@ -1,8 +1,10 @@
 import { ShapeFlags, Text } from "../shared/shapeFlags";
+import { ComponentInstance } from "./components";
 
 export interface VNode {
     type: any;
     key?: any;
+    component?: ComponentInstance;
     props?: any;
     children?: any;
     el?: any;

@@ -20,6 +20,8 @@ export interface ComponentInstance {
     parent?: ParentComponent;
     isMounted: boolean;
     subTree: VNode | null;
+    update?: Function;
+    next: VNode | null;
 }
 
 export function createComponentInstance(vnode: VNode, parent: ParentComponent): ComponentInstance {
@@ -33,6 +35,7 @@ export function createComponentInstance(vnode: VNode, parent: ParentComponent): 
         parent,
         isMounted: false,
         subTree: null,
+        next: null,
         emit: () => {}
     }
     component.emit = emit.bind(null, component)

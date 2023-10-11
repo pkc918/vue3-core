@@ -9,7 +9,7 @@ export interface EffectOption {
     onStop?: Function;
 }
 
-interface RunnerType {
+export interface RunnerType {
     effect?: ReactiveEffect;
     (): any;
 }
@@ -64,7 +64,7 @@ export function effect(fn: Function, options: EffectOption = {}) {
     let _effect = new ReactiveEffect(fn, options.scheduler);
     extend(_effect, options);
     _effect.run();
-    const runner: RunnerType = _effect.run.bind(_effect);
+    const runner: any = _effect.run.bind(_effect);
     runner.effect = _effect;
     return runner;
 }
