@@ -4,6 +4,7 @@ import { EMPTY_OBJ, Fragment, ShapeFlags, Text } from "../shared/shapeFlags";
 import { createAppAPI } from "./createApp";
 import { effect } from "../reactivity/effect";
 import { shouldUpdateComponent } from "./componentUpdateUtils";
+import { queueJobs } from "./scheduler";
 
 export type ParentComponent = ComponentInstance | null
 
@@ -324,6 +325,10 @@ export function createRenderer(options: RendererOptions) {
                 const prevSubTree = instance.subTree;
                 instance.subTree = subTree;
                 patch(prevSubTree, subTree, container, instance, anchor);
+            }
+        }, {
+            scheduler() {
+                queueJobs(instance.update);
             }
         });
     }
